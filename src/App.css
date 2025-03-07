@@ -1,3 +1,6 @@
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-alpine.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -12,14 +15,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.app-container {
-  min-width: 1080px; /* As per requirement */
+.App {
+  min-width: 1080px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.App {
   text-align: center;
 }
 
@@ -47,6 +47,16 @@ body {
 
 .App-link {
   color: #61dafb;
+}
+
+.ag-theme-alpine {
+  --ag-header-height: 40px;
+  --ag-header-foreground-color: #374151;
+  --ag-header-background-color: #f3f4f6;
+  --ag-row-hover-color: #f9fafb;
+  --ag-selected-row-background-color: #e5e7eb;
+  --ag-font-size: 14px;
+  --ag-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 @keyframes App-logo-spin {
