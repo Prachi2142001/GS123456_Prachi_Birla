@@ -18,14 +18,14 @@ const TopNav: React.FC = () => {
 
   return (
     <nav className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+      <div className="max-w-7xl mx-auto pl-2 sm:pl-4 pr-4 sm:pr-6 lg:px-8">
+        <div className="flex justify-between items-center py-2">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 -ml-2">
               <img
-                className="h-12 w-auto sm:h-16" // Increased logo size
                 src={gsynergyLogo}
                 alt="GSynergy Logo"
+                style={{ width: '120px', height: '120px', objectFit: 'contain' }}
               />
             </div>
           </div>
@@ -55,7 +55,7 @@ const TopNav: React.FC = () => {
           <div className="hidden sm:flex sm:items-center sm:ml-6">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{user?.name}</span>
+                <span className="text-gray-700">Welcome, {user?.name}</span>
                 <button
                   onClick={handleLogout}
                   className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
