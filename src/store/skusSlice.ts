@@ -1,23 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SKU } from '../types/sku';
-
-interface SKUsState {
-  skus: SKU[];
-  loading: boolean;
-  error: string | null;
-  selectedSKU: SKU | null;
-  filters: {
-    category?: string;
-    searchTerm?: string;
-  };
-  sorting: {
-    field: keyof SKU;
-    direction: 'asc' | 'desc';
-  };
-}
+import { SKU, SKUsState } from '../types/sku';
+import { sampleSKUs } from '../data/sampleData';
 
 const initialState: SKUsState = {
-  skus: [],
+  skus: sampleSKUs,
   loading: false,
   error: null,
   selectedSKU: null,
@@ -47,14 +33,14 @@ const skusSlice = createSlice({
     deleteSKU: (state, action: PayloadAction<string>) => {
       state.skus = state.skus.filter(sku => sku.id !== action.payload);
     },
-    setSelectedSKU: (state, action: PayloadAction<SKU | null>) => {
-      state.selectedSKU = action.payload;
-    },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
+    },
+    setSelectedSKU: (state, action: PayloadAction<SKU | null>) => {
+      state.selectedSKU = action.payload;
     },
     setFilters: (state, action: PayloadAction<SKUsState['filters']>) => {
       state.filters = action.payload;
@@ -70,9 +56,9 @@ export const {
   addSKU,
   updateSKU,
   deleteSKU,
-  setSelectedSKU,
   setLoading,
   setError,
+  setSelectedSKU,
   setFilters,
   setSorting
 } = skusSlice.actions;

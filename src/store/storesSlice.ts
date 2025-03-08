@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Store, StoresState } from '../types';
+import { Store, StoresState } from '../types/store';
+import { sampleStores } from '../data/sampleData';
 
 const initialState: StoresState = {
-    stores: [],
+    stores: sampleStores,
     loading: false,
     error: null,
     selectedStore: null,

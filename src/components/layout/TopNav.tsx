@@ -23,7 +23,7 @@ const TopNav: React.FC = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <img
-                className="h-8 w-auto"
+                className="h-12 w-auto sm:h-16" // Increased logo size
                 src={gsynergyLogo}
                 alt="GSynergy Logo"
               />
