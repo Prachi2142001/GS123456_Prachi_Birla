@@ -10,12 +10,12 @@ export interface RegisterData extends LoginCredentials {
 }
 
 export interface AuthResponse {
-  token: string;
   user: {
     id: string;
     name: string;
     email: string;
   };
+  token: string;
 }
 
 const validateEmail = (email: string): boolean => {
@@ -32,76 +32,68 @@ const validateName = (name: string): boolean => {
 };
 
 class AuthService {
-  private token: string | null = null;
+  private readonly USER_KEY = 'gsynergy_user';
+  private readonly TOKEN_KEY = 'gsynergy_token';
+
+  // Simulated user database
+  private readonly DEMO_USER: AuthResponse = {
+    user: {
+      id: '1',
+      name: 'Demo User',
+      email: 'demo@gsynergy.com',
+    },
+    token: 'demo-token-123',
+  };
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    if (!credentials.email || !credentials.password) {
-      throw new Error('Email and password are required');
-    }
-    if (!validateEmail(credentials.email)) {
-      throw new Error('Invalid email format');
-    }
-    if (!validatePassword(credentials.password)) {
-      throw new Error('Password must be at least 6 characters long');
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // For demo purposes, accept any email/password
+    if (credentials.email && credentials.password) {
+      localStorage.setItem(this.TOKEN_KEY, this.DEMO_USER.token);
+      localStorage.setItem(this.USER_KEY, JSON.stringify(this.DEMO_USER.user));
+      return this.DEMO_USER;
     }
 
-    // Mock API call - replace with actual API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          token: 'mock-jwt-token',
-          user: {
-            id: '1',
-            name: credentials.email.split('@')[0],
-            email: credentials.email
-          }
-        });
-      }, 500);
-    });
+    throw new Error('Invalid credentials');
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    if (!data.email || !data.password || !data.name) {
-      throw new Error('All fields are required');
-    }
-    if (!validateName(data.name)) {
-      throw new Error('Name must be at least 2 characters long');
-    }
-    if (!validateEmail(data.email)) {
-      throw new Error('Invalid email format');
-    }
-    if (!validatePassword(data.password)) {
-      throw new Error('Password must be at least 6 characters long');
-    }
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Mock API call - replace with actual API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          token: 'mock-jwt-token',
-          user: {
-            id: '1',
-            name: data.name,
-            email: data.email
-          }
-        });
-      }, 500);
-    });
+    // For demo purposes, create a new user with the provided data
+    const newUser: AuthResponse = {
+      user: {
+        id: Math.random().toString(36).substr(2, 9),
+        name: data.name,
+        email: data.email,
+      },
+      token: Math.random().toString(36).substr(2, 16),
+    };
+
+    localStorage.setItem(this.TOKEN_KEY, newUser.token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify(newUser.user));
+    return newUser;
   }
 
   logout(): void {
-    this.token = null;
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+  }
+
+  getCurrentUser(): AuthResponse['user'] | null {
+    const userStr = localStorage.getItem(this.USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   isAuthenticated(): boolean {
-    return !!this.token;
-  }
-
-  private setToken(token: string): void {
-    this.token = token;
-    localStorage.setItem('token', token);
+    return !!this.getToken();
   }
 }
 

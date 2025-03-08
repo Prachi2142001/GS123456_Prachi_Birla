@@ -15,8 +15,8 @@ const TopNav: React.FC = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md h-[140px] fixed w-full top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+    <nav className="bg-white border-b border-gray-200">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-full">
           <div className="flex-shrink-0 flex items-center space-x-4">
             <img
@@ -31,18 +31,18 @@ const TopNav: React.FC = () => {
           </div>
 
           <div className="flex items-center">
+            {isAuthenticated && (
+              <span className="mr-4 text-gray-700">
+                Welcome, <span className="font-medium">{user?.name || user?.email}</span>
+              </span>
+            )}
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <div className="text-gray-700">
-                  Welcome, <span className="font-medium">{user?.name}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+              >
+                Sign Out
+              </button>
             ) : (
               <button
                 onClick={() => setShowAuthForm(true)}

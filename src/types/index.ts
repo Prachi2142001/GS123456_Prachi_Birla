@@ -1,16 +1,7 @@
-// Store type definitions
-export interface Store {
-    id: string;
-    name: string;
-    order: number;
-}
+import { Store, StoresState } from './store';
+import { SKU, SKUsState } from './sku';
 
-export interface SKU {
-    id: string;
-    name: string;
-    price: number;
-    cost: number;
-}
+export type { Store, StoresState, SKU, SKUsState };
 
 export interface WeekData {
     salesUnits: number;
@@ -24,19 +15,6 @@ export interface PlanningData {
     skuId: string;
     weekId: string;
     data: WeekData;
-}
-
-// State interfaces
-export interface StoresState {
-    stores: Store[];
-    loading: boolean;
-    error: string | null;
-}
-
-export interface SKUsState {
-    skus: SKU[];
-    loading: boolean;
-    error: string | null;
 }
 
 export interface PlanningState {

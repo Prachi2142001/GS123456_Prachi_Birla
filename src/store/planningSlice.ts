@@ -1,12 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PlanningState, WeekData } from '../types';
-
-interface UpdatePlanningDataPayload {
-  storeId: string;
-  skuId: string;
-  weekId: string;
-  data: Partial<WeekData>;
-}
+import { PlanningState, UpdatePlanningDataPayload, WeekData } from '../types/planning';
 
 const initialState: PlanningState = {
   planningData: {},
@@ -20,7 +13,7 @@ const planningSlice = createSlice({
   reducers: {
     updatePlanningData: (state, action: PayloadAction<UpdatePlanningDataPayload>) => {
       const { storeId, skuId, weekId, data } = action.payload;
-      
+
       // Initialize nested objects if they don't exist
       if (!state.planningData[storeId]) {
         state.planningData[storeId] = {};
@@ -30,6 +23,7 @@ const planningSlice = createSlice({
       }
       if (!state.planningData[storeId][skuId][weekId]) {
         state.planningData[storeId][skuId][weekId] = {
+          units: 0,
           salesUnits: 0,
           salesDollars: 0,
           gmDollars: 0,
@@ -37,26 +31,14 @@ const planningSlice = createSlice({
         };
       }
 
-      // Update only the provided fields
+      // Update the data
       state.planningData[storeId][skuId][weekId] = {
         ...state.planningData[storeId][skuId][weekId],
         ...data,
       };
-
-      // Recalculate GM percentage if either sales or GM dollars changed
-      if (data.salesDollars !== undefined || data.gmDollars !== undefined) {
-        const currentData = state.planningData[storeId][skuId][weekId];
-        if (currentData.salesDollars > 0) {
-          currentData.gmPercentage = (currentData.gmDollars / currentData.salesDollars) * 100;
-        } else {
-          currentData.gmPercentage = 0;
-        }
-      }
     },
     bulkUpdatePlanningData: (state, action: PayloadAction<UpdatePlanningDataPayload[]>) => {
-      action.payload.forEach(update => {
-        const { storeId, skuId, weekId, data } = update;
-        
+      action.payload.forEach(({ storeId, skuId, weekId, data }) => {
         // Initialize nested objects if they don't exist
         if (!state.planningData[storeId]) {
           state.planningData[storeId] = {};
@@ -66,6 +48,7 @@ const planningSlice = createSlice({
         }
         if (!state.planningData[storeId][skuId][weekId]) {
           state.planningData[storeId][skuId][weekId] = {
+            units: 0,
             salesUnits: 0,
             salesDollars: 0,
             gmDollars: 0,
@@ -78,15 +61,10 @@ const planningSlice = createSlice({
           ...state.planningData[storeId][skuId][weekId],
           ...data,
         };
-
-        // Recalculate GM percentage
-        const currentData = state.planningData[storeId][skuId][weekId];
-        if (currentData.salesDollars > 0) {
-          currentData.gmPercentage = (currentData.gmDollars / currentData.salesDollars) * 100;
-        } else {
-          currentData.gmPercentage = 0;
-        }
       });
+    },
+    clearPlanningData: (state) => {
+      state.planningData = {};
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -100,6 +78,7 @@ const planningSlice = createSlice({
 export const {
   updatePlanningData,
   bulkUpdatePlanningData,
+  clearPlanningData,
   setLoading,
   setError,
 } = planningSlice.actions;

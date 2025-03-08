@@ -5,6 +5,8 @@ import { store } from './store/store';
 import Layout from './components/layout/Layout';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import 'ag-grid-community/styles/ag-theme-balham.css';
+import 'ag-grid-community/styles/ag-theme-material.css';
 import './App.css';
 
 // Lazy load pages for better performance

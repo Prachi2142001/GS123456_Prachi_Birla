@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SKU, SKUsState } from '../types';
+import { SKU, SKUsState } from '../types/sku';
 
 const initialState: SKUsState = {
     skus: [],
@@ -11,6 +11,9 @@ const skusSlice = createSlice({
     name: 'skus',
     initialState,
     reducers: {
+        setSKUs: (state, action: PayloadAction<SKU[]>) => {
+            state.skus = action.payload;
+        },
         addSKU: (state, action: PayloadAction<SKU>) => {
             state.skus.push(action.payload);
         },
@@ -40,6 +43,7 @@ const skusSlice = createSlice({
 });
 
 export const {
+    setSKUs,
     addSKU,
     updateSKU,
     removeSKU,

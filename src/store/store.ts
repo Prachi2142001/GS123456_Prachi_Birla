@@ -3,6 +3,7 @@ import storesReducer from './storesSlice';
 import skusReducer from './skusSlice';
 import planningReducer from './planningSlice';
 import authReducer from './authSlice';
+import chartReducer from './chartSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     skus: skusReducer,
     planning: planningReducer,
     auth: authReducer,
+    chart: chartReducer,
   },
 });
 
