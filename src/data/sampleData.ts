@@ -1,5 +1,5 @@
-import { Store, StoreType, StoreStatus } from '../types/store';
-import { SKU, SKUStatus } from '../types/sku';
+import { Store } from '../types/store';
+import { SKU } from '../types/sku';
 import { PlanningGridRow } from '../types/planning';
 
 export const sampleStores: Store[] = [
