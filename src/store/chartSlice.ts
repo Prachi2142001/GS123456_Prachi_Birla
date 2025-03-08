@@ -1,6 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Store } from '../types/store';
-import { SKU } from '../types/sku';
 
 interface ChartData {
   storeMetrics: {

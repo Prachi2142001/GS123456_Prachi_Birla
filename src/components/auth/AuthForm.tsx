@@ -1,95 +1,86 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { login, register } from '../../store/authSlice';
-import type { LoginCredentials, RegisterData } from '../../services/authService';
+import type { LoginCredentials, RegisterData } from '../../types/auth';
 import { AppDispatch } from '../../store/store';
 
 interface AuthFormProps {
+  mode: 'login' | 'register';
   onClose: () => void;
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({
+const AuthForm: React.FC<AuthFormProps> = ({ mode, onClose }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const [formData, setFormData] = useState<RegisterData>({
     name: '',
     email: '',
-    password: '',
+    password: ''
   });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
+
+  const [errors, setErrors] = useState<Partial<RegisterData> & { general?: string }>({});
 
   const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-    
-    if (!isLogin && !formData.name.trim()) {
+    const newErrors: Partial<RegisterData> = {};
+    if (mode === 'register' && !formData.name) {
       newErrors.name = 'Name is required';
-    } else if (!isLogin && formData.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
     }
-
-    if (!formData.email.trim()) {
+    if (!formData.email) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
     }
-
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      if (isLogin) {
-        const credentials: LoginCredentials = {
-          email: formData.email,
-          password: formData.password,
-        };
-        await dispatch(login(credentials));
-      } else {
-        const data: RegisterData = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        };
-        await dispatch(register(data));
+    if (validateForm()) {
+      try {
+        if (mode === 'login') {
+          const loginData: LoginCredentials = {
+            email: formData.email,
+            password: formData.password
+          };
+          await dispatch(login(loginData)).unwrap();
+        } else {
+          await dispatch(register(formData)).unwrap();
+        }
+        onClose();
+      } catch (error) {
+        if (error instanceof Error) {
+          setErrors({ general: error.message });
+        }
       }
-      onClose();
-    } catch (error) {
-      setErrors({ submit: error instanceof Error ? error.message : 'Authentication failed' });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev: RegisterData) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof RegisterData]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 max-w-md w-full animate-fadeIn">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">
-          {isLogin ? 'Sign In' : 'Create Account'}
-        </h2>
+        <h2 className="text-2xl font-bold mb-6">{mode === 'login' ? 'Sign In' : 'Create Account'}</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
+          {errors.general && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+              {errors.general}
+            </div>
+          )}
+
+          {mode === 'register' && (
             <div>
               <label className="block text-sm font-medium text-gray-700">Name</label>
               <input
@@ -142,46 +133,27 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
             )}
           </div>
 
-          {errors.submit && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-600">{errors.submit}</p>
-            </div>
-          )}
-
           <div className="flex items-center justify-between pt-4">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => onClose()}
               className="text-sm text-primary hover:text-primary-dark"
             >
-              {isLogin ? 'Need an account?' : 'Already have an account?'}
+              Cancel
             </button>
             <div className="flex space-x-3">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => onClose()}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
-                className={`px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-                  isLoading ? 'opacity-75 cursor-not-allowed' : ''
-                }`}
+                className={`px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-dark rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
               >
-                {isLoading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </span>
-                ) : (
-                  isLogin ? 'Sign In' : 'Create Account'
-                )}
+                {mode === 'login' ? 'Sign In' : 'Create Account'}
               </button>
             </div>
           </div>

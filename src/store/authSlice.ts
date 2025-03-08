@@ -1,13 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authService, LoginCredentials, RegisterData, AuthResponse } from '../services/authService';
-
-interface AuthState {
-  user: AuthResponse['user'] | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-}
+import { authService } from '../services/authService';
+import { AuthState, LoginCredentials, RegisterData, AuthResponse } from '../types/auth';
 
 const storedUser = localStorage.getItem('user');
 const initialState: AuthState = {

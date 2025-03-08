@@ -56,7 +56,7 @@ const TopNav: React.FC = () => {
       </div>
 
       {showAuthForm && !isAuthenticated && (
-        <AuthForm onClose={() => setShowAuthForm(false)} />
+        <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
       )}
     </nav>
   );

@@ -35,6 +35,21 @@ const StoresPage: React.FC = () => {
     loadStores();
   }, [loadStores]);
 
+  const handleDelete = useCallback(async (id: string) => {
+    if (!isAuthenticated || !window.confirm('Are you sure you want to delete this store?')) return;
+
+    try {
+      dispatch(setLoading(true));
+      await storeService.deleteStore(id);
+      dispatch(removeStore(id));
+      await loadStores();
+    } catch (err) {
+      dispatch(setError(err instanceof Error ? err.message : 'Failed to delete store'));
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }, [dispatch, isAuthenticated, loadStores]);
+
   const columnDefs = useMemo<ColDef[]>(() => [
     { 
       field: 'name',
@@ -108,7 +123,7 @@ const StoresPage: React.FC = () => {
         );
       },
     },
-  ], [isAuthenticated]);
+  ], [isAuthenticated, handleDelete]);
 
   const defaultColDef = useMemo(() => ({
     resizable: true,
@@ -150,21 +165,6 @@ const StoresPage: React.FC = () => {
       setSelectedStore(null);
     } catch (err) {
       dispatch(setError(err instanceof Error ? err.message : 'Failed to update store'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!isAuthenticated || !window.confirm('Are you sure you want to delete this store?')) return;
-
-    try {
-      dispatch(setLoading(true));
-      await storeService.deleteStore(id);
-      dispatch(removeStore(id));
-      await loadStores();
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to delete store'));
     } finally {
       dispatch(setLoading(false));
     }
@@ -254,7 +254,7 @@ const StoresPage: React.FC = () => {
       {showAuthForm && !isAuthenticated && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg max-w-md w-full mx-4">
-            <AuthForm onClose={() => setShowAuthForm(false)} />
+            <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
           </div>
         </div>
       )}

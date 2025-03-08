@@ -26,7 +26,8 @@ interface CategoryMetric {
 
 const ChartPage: React.FC = () => {
   const dispatch = useDispatch();
-  const { storeMetrics, skuMetrics, loading, error } = useSelector((state: RootState) => state.chart);
+  const state = useSelector((state: RootState) => state);
+  const { storeMetrics, skuMetrics, loading, error } = state.chart;
   const storeChartRef = React.useRef<HTMLDivElement>(null);
   const categoryChartRef = React.useRef<HTMLDivElement>(null);
   const storeChartInstance = React.useRef<any>(null);
@@ -36,8 +37,8 @@ const ChartPage: React.FC = () => {
     try {
       dispatch(setLoading(true));
       const [storeData, skuData] = await Promise.all([
-        chartService.getStoreMetrics(),
-        chartService.getSKUMetrics(),
+        chartService.getStoreMetrics(state),
+        chartService.getSKUMetrics(state),
       ]);
       dispatch(setStoreMetrics(storeData));
       dispatch(setSKUMetrics(skuData));
@@ -46,7 +47,7 @@ const ChartPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch]);
+  }, [dispatch, state]);
 
   useEffect(() => {
     loadChartData();

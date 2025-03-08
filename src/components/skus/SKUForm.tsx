@@ -1,5 +1,5 @@
 import React from 'react';
-import { CreateSKUDto, SKU } from '../../types/sku';
+import { CreateSKUDto } from '../../types/sku';
 
 interface SKUFormProps {
   onSubmit: (data: CreateSKUDto) => void;

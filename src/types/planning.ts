@@ -1,47 +1,29 @@
 // Planning types
-export interface WeekData {
+export interface PlanningGridRow {
+  id: string;
+  storeId: string;
+  store: string;
+  skuId: string;
+  sku: string;
+  category: string;
+  price: number;
+  cost: number;
+  quantity: number;
+  week: string;
   units: number;
-  salesUnits?: number;
-  salesDollars?: number;
-  gmDollars?: number;
-  gmPercentage?: number;
-}
-
-export interface SKUWeekData {
-  [weekId: string]: WeekData;
-}
-
-export interface StoreSKUData {
-  [skuId: string]: SKUWeekData;
-}
-
-export interface PlanningData {
-  [storeId: string]: StoreSKUData;
+  salesUnits: number;
+  salesDollars: number;
+  gmDollars: number;
+  gmPercentage: number;
 }
 
 export interface PlanningState {
-  planningData: PlanningData;
+  planningData: PlanningGridRow[];
   loading: boolean;
   error: string | null;
 }
 
-export interface UpdatePlanningDataPayload {
-  storeId: string;
-  skuId: string;
-  weekId: string;
-  data: Partial<WeekData>;
-}
-
 // Planning grid types
-export interface PlanningGridRow {
-  id: string;
-  store: string;
-  sku: string;
-  price: number;
-  cost: number;
-  [key: string]: any; // For dynamic week columns
-}
-
 export interface PlanningGridColumn {
   field: string;
   headerName: string;

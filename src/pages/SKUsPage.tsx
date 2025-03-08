@@ -260,7 +260,7 @@ const SKUsPage: React.FC = () => {
       {showAuthForm && !isAuthenticated && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg max-w-md w-full mx-4">
-            <AuthForm onClose={() => setShowAuthForm(false)} />
+            <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
           </div>
         </div>
       )}
