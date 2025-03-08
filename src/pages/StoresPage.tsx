@@ -1,258 +1,166 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef } from 'ag-grid-community';
-import { Store, CreateStoreDto } from '../types/store';
 import { RootState } from '../store/store';
-import { storeService } from '../services/storeService';
-import { setStores, addStore, updateStore, removeStore, setLoading, setError } from '../store/storesSlice';
+import { Store } from '../types/store';
+import { deleteStore } from '../store/storesSlice';
 import StoreForm from '../components/stores/StoreForm';
 import AuthForm from '../components/auth/AuthForm';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 const StoresPage: React.FC = () => {
   const dispatch = useDispatch();
-  const { stores, loading, error } = useSelector((state: RootState) => state.stores);
+  const { stores } = useSelector((state: RootState) => state.stores);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const [showForm, setShowForm] = React.useState(false);
-  const [showAuthForm, setShowAuthForm] = React.useState(false);
-  const [selectedStore, setSelectedStore] = React.useState<Store | null>(null);
+  const [showStoreForm, setShowStoreForm] = useState(false);
+  const [editingStore, setEditingStore] = useState<Store | null>(null);
+  const [showAuthForm, setShowAuthForm] = useState(false);
 
-  const loadStores = useCallback(async () => {
-    try {
-      dispatch(setLoading(true));
-      const data = await storeService.getAllStores();
-      dispatch(setStores(data));
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to load stores'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
-    loadStores();
-  }, [loadStores]);
-
-  const handleDelete = useCallback(async (id: string) => {
-    if (!isAuthenticated || !window.confirm('Are you sure you want to delete this store?')) return;
-
-    try {
-      dispatch(setLoading(true));
-      await storeService.deleteStore(id);
-      dispatch(removeStore(id));
-      await loadStores();
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to delete store'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  }, [dispatch, isAuthenticated, loadStores]);
-
-  const columnDefs = useMemo<ColDef[]>(() => [
-    { 
-      field: 'name',
+  const columnDefs: ColDef[] = [
+    {
       headerName: 'Store Name',
-      sortable: true,
-      filter: true,
-      flex: 1,
+      field: 'name',
       minWidth: 150,
+      flex: 1,
+      resizable: true,
+      filter: true,
+      sortable: true,
     },
-    { 
-      field: 'location',
+    {
       headerName: 'Location',
-      sortable: true,
-      filter: true,
+      field: 'location',
+      minWidth: 150,
       flex: 1,
-      minWidth: 120,
+      resizable: true,
+      filter: true,
+      sortable: true,
     },
-    { 
-      field: 'manager',
+    {
       headerName: 'Manager',
-      sortable: true,
-      filter: true,
+      field: 'manager',
+      minWidth: 150,
       flex: 1,
-      minWidth: 120,
-    },
-    { 
-      field: 'type',
-      headerName: 'Type',
-      sortable: true,
+      resizable: true,
       filter: true,
-      width: 100,
-    },
-    { 
-      field: 'status',
-      headerName: 'Status',
       sortable: true,
+    },
+    {
+      headerName: 'Contact',
+      field: 'contact',
+      minWidth: 150,
+      flex: 1,
+      resizable: true,
       filter: true,
-      width: 100,
-      cellRenderer: (params: { value: string }) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          params.value === 'active' 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
-        </span>
-      ),
+      sortable: true,
     },
     {
       headerName: 'Actions',
-      width: 120,
+      minWidth: 150,
+      flex: 1,
       sortable: false,
       filter: false,
-      cellRenderer: (params: { data: Store }) => {
-        if (!isAuthenticated || !params.data) return null;
-        return (
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleEdit(params.data)}
-              className="text-blue-600 hover:text-blue-800"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => handleDelete(params.data.id)}
-              className="text-red-600 hover:text-red-800"
-            >
-              Delete
-            </button>
-          </div>
-        );
-      },
+      cellRenderer: (params: any) => (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleEdit(params.data)}
+            className="text-blue-600 hover:text-blue-800"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(params.data.id)}
+            className="text-red-600 hover:text-red-800"
+          >
+            Delete
+          </button>
+        </div>
+      ),
     },
-  ], [isAuthenticated, handleDelete]);
+  ];
 
-  const defaultColDef = useMemo(() => ({
-    resizable: true,
+  const defaultColDef = {
     sortable: true,
     filter: true,
-  }), []);
+    resizable: true,
+  };
 
-  const handleCreateStore = async (storeData: CreateStoreDto) => {
+  const handleEdit = (store: Store) => {
     if (!isAuthenticated) {
       setShowAuthForm(true);
       return;
     }
+    setEditingStore(store);
+    setShowStoreForm(true);
+  };
 
-    try {
-      dispatch(setLoading(true));
-      const newStore = await storeService.createStore(storeData);
-      dispatch(addStore(newStore));
-      await loadStores();
-      setShowForm(false);
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to create store'));
-    } finally {
-      dispatch(setLoading(false));
+  const handleDelete = (storeId: string) => {
+    if (!isAuthenticated) {
+      setShowAuthForm(true);
+      return;
+    }
+    if (window.confirm('Are you sure you want to delete this store?')) {
+      dispatch(deleteStore(storeId));
     }
   };
 
-  const handleUpdateStore = async (storeData: CreateStoreDto) => {
-    if (!selectedStore || !isAuthenticated) return;
-
-    try {
-      dispatch(setLoading(true));
-      const updatedStore = await storeService.updateStore({
-        ...storeData,
-        id: selectedStore.id,
-      });
-      dispatch(updateStore(updatedStore));
-      await loadStores();
-      setShowForm(false);
-      setSelectedStore(null);
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to update store'));
-    } finally {
-      dispatch(setLoading(false));
+  const handleAddStore = () => {
+    if (!isAuthenticated) {
+      setShowAuthForm(true);
+      return;
     }
-  };
-
-  const handleEdit = (store: Store) => {
-    setSelectedStore(store);
-    setShowForm(true);
+    setEditingStore(null);
+    setShowStoreForm(true);
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Store Management</h1>
-        {isAuthenticated && (
+    <div className="flex flex-col h-full p-4 space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2 sm:mb-0">Stores</h1>
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
           <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+            onClick={handleAddStore}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors w-full sm:w-auto"
           >
-            Add New Store
+            Add Store
           </button>
-        )}
+          <button
+            onClick={() => {/* Add export functionality */}}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors w-full sm:w-auto"
+          >
+            Export to Excel
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
+      <div className="flex-grow w-full h-[calc(100vh-12rem)] min-h-[400px] bg-white rounded-lg shadow overflow-hidden">
+        <div className="ag-theme-alpine w-full h-full">
+          <AgGridReact
+            rowData={stores}
+            columnDefs={columnDefs}
+            defaultColDef={defaultColDef}
+            animateRows={true}
+            rowSelection="multiple"
+            suppressRowClickSelection={true}
+            pagination={true}
+            paginationPageSize={10}
+            domLayout="autoHeight"
+          />
         </div>
-      )}
+      </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="ag-theme-alpine w-full" style={{ height: 'calc(100vh - 250px)' }}>
-          {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <AgGridReact
-              rowData={stores}
-              columnDefs={columnDefs}
-              defaultColDef={defaultColDef}
-              animateRows={true}
-              rowSelection="single"
-              pagination={true}
-              paginationPageSize={10}
-              suppressCellFocus={true}
-              onGridReady={params => {
-                params.api.sizeColumnsToFit();
-              }}
+      {showStoreForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full mx-4">
+            <StoreForm
+              store={editingStore}
+              onClose={() => setShowStoreForm(false)}
             />
-          )}
-        </div>
-      </div>
-
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">
-                  {selectedStore ? 'Edit Store' : 'Create New Store'}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowForm(false);
-                    setSelectedStore(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <span className="sr-only">Close</span>
-                  ×
-                </button>
-              </div>
-              <StoreForm
-                onSubmit={selectedStore ? handleUpdateStore : handleCreateStore}
-                onCancel={() => {
-                  setShowForm(false);
-                  setSelectedStore(null);
-                }}
-                initialData={selectedStore}
-              />
-            </div>
           </div>
         </div>
       )}
 
       {showAuthForm && !isAuthenticated && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full mx-4">
             <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
           </div>

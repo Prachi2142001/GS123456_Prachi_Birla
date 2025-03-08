@@ -1,63 +1,267 @@
-import React from 'react';
-import { CreateStoreDto, Store } from '../../types/store';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { Store, StoreType, StoreStatus } from '../../types/store';
+import { addStore, updateStore } from '../../store/storesSlice';
 
 interface StoreFormProps {
-  onSubmit: (data: CreateStoreDto) => void;
-  onCancel: () => void;
-  initialData?: Store | null;
+  store: Store | null;
+  onClose: () => void;
 }
 
-const StoreForm: React.FC<StoreFormProps> = ({ onSubmit, onCancel, initialData }) => {
-  const [formData, setFormData] = React.useState<CreateStoreDto>({
-    name: initialData?.name || '',
-    location: initialData?.location || '',
-    manager: initialData?.manager || '',
-    contact: initialData?.contact || '',
-    email: initialData?.email || '',
-    status: initialData?.status || 'active',
-    type: initialData?.type || 'retail',
-    order: initialData?.order || 0,
-    address: initialData?.address || '',
-    city: initialData?.city || '',
-    state: initialData?.state || '',
-    zipCode: initialData?.zipCode || '',
-    phone: initialData?.phone || '',
+interface FormData {
+  name: string;
+  location: string;
+  manager: string;
+  contact: string;
+  type: StoreType;
+  status: StoreStatus;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  order: number;
+}
+
+const StoreForm: React.FC<StoreFormProps> = ({ store, onClose }) => {
+  const dispatch = useDispatch();
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    location: '',
+    manager: '',
+    contact: '',
+    type: 'retail',
+    status: 'active',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    order: 0
   });
+
+  useEffect(() => {
+    if (store) {
+      setFormData({
+        name: store.name,
+        location: store.location,
+        manager: store.manager,
+        contact: store.contact,
+        type: store.type,
+        status: store.status,
+        email: store.email,
+        phone: store.phone,
+        address: store.address,
+        city: store.city,
+        state: store.state,
+        zipCode: store.zipCode,
+        order: store.order
+      });
+    }
+  }, [store]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (store) {
+      dispatch(updateStore({ ...store, ...formData }));
+    } else {
+      dispatch(addStore({
+        id: Date.now().toString(),
+        ...formData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+    }
+    onClose();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'order' ? parseInt(value) || 0 : value
+    }));
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="p-6 space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">
+          {store ? 'Edit Store' : 'Add New Store'}
+        </h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-500"
+        >
+          <span className="sr-only">Close</span>
+          ×
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Store Name</label>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            Store Name
+          </label>
           <input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
 
         <div>
-          <label htmlFor="type" className="block text-sm font-medium text-gray-700">Store Type</label>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+            Location
+          </label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="manager" className="block text-sm font-medium text-gray-700">
+            Manager
+          </label>
+          <input
+            type="text"
+            id="manager"
+            name="manager"
+            value={formData.manager}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
+            Contact
+          </label>
+          <input
+            type="text"
+            id="contact"
+            name="contact"
+            value={formData.contact}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+            Phone
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+            Address
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+            City
+          </label>
+          <input
+            type="text"
+            id="city"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+            State
+          </label>
+          <input
+            type="text"
+            id="state"
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
+            ZIP Code
+          </label>
+          <input
+            type="text"
+            id="zipCode"
+            name="zipCode"
+            value={formData.zipCode}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+            Type
+          </label>
           <select
             id="type"
             name="type"
             value={formData.type}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="retail">Retail</option>
             <option value="warehouse">Warehouse</option>
@@ -66,116 +270,15 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSubmit, onCancel, initialData }
         </div>
 
         <div>
-          <label htmlFor="manager" className="block text-sm font-medium text-gray-700">Manager</label>
-          <input
-            type="text"
-            id="manager"
-            name="manager"
-            value={formData.manager}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="contact" className="block text-sm font-medium text-gray-700">Alternate Contact</label>
-          <input
-            type="text"
-            id="contact"
-            name="contact"
-            value={formData.contact}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div className="col-span-2">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-          <input
-            type="text"
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium text-gray-700">State</label>
-          <input
-            type="text"
-            id="state"
-            name="state"
-            value={formData.state}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">ZIP Code</label>
-          <input
-            type="text"
-            id="zipCode"
-            name="zipCode"
-            value={formData.zipCode}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            Status
+          </label>
           <select
             id="status"
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -183,46 +286,35 @@ const StoreForm: React.FC<StoreFormProps> = ({ onSubmit, onCancel, initialData }
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="order" className="block text-sm font-medium text-gray-700">Order</label>
+          <label htmlFor="order" className="block text-sm font-medium text-gray-700">
+            Order
+          </label>
           <input
             type="number"
             id="order"
             name="order"
             value={formData.order}
             onChange={handleChange}
-            required
             min="0"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            required
           />
         </div>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-4">
+      <div className="mt-6 flex justify-end space-x-3">
         <button
           type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          onClick={onClose}
+          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
-          {initialData ? 'Update' : 'Create'} Store
+          {store ? 'Update Store' : 'Add Store'}
         </button>
       </div>
     </form>

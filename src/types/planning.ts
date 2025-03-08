@@ -15,6 +15,9 @@ export interface PlanningGridRow {
   salesDollars: number;
   gmDollars: number;
   gmPercentage: number;
+  currentStock: number;
+  requiredStock: number;
+  difference?: number;
 }
 
 export interface PlanningState {

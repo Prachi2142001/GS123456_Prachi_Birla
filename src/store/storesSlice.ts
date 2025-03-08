@@ -33,7 +33,7 @@ const storesSlice = createSlice({
                 state.stores[index] = action.payload;
             }
         },
-        removeStore: (state, action: PayloadAction<string>) => {
+        deleteStore: (state, action: PayloadAction<string>) => {
             state.stores = state.stores.filter(store => store.id !== action.payload);
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
@@ -61,7 +61,7 @@ export const {
     setStores,
     addStore,
     updateStore,
-    removeStore,
+    deleteStore,
     setLoading,
     setError,
     setSelectedStore,

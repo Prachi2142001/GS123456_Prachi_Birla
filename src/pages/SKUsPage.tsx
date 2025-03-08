@@ -1,264 +1,194 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef, ValueFormatterParams } from 'ag-grid-community';
-import { SKU, CreateSKUDto } from '../types/sku';
+import { ColDef } from 'ag-grid-community';
 import { RootState } from '../store/store';
-import { skuService } from '../services/skuService';
-import { setSKUs, addSKU, updateSKU, removeSKU as deleteSKU, setLoading, setError } from '../store/skusSlice';
+import { SKU } from '../types/sku';
+import { deleteSKU } from '../store/skusSlice';
 import SKUForm from '../components/skus/SKUForm';
 import AuthForm from '../components/auth/AuthForm';
 
 const SKUsPage: React.FC = () => {
   const dispatch = useDispatch();
-  const { skus, loading, error } = useSelector((state: RootState) => state.skus);
+  const { skus } = useSelector((state: RootState) => state.skus);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const [showForm, setShowForm] = useState(false);
+  const [showSKUForm, setShowSKUForm] = useState(false);
+  const [editingSKU, setEditingSKU] = useState<SKU | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
-  const [selectedSKU, setSelectedSKU] = useState<SKU | undefined>();
 
-  const columnDefs: ColDef<SKU>[] = [
-    { 
-      field: 'name', 
+  const columnDefs: ColDef[] = [
+    {
       headerName: 'SKU Name',
-      sortable: true,
+      field: 'name',
+      minWidth: 150,
+      flex: 1,
+      resizable: true,
       filter: true,
-      width: 200,
-    },
-    { 
-      field: 'description', 
-      headerName: 'Description',
       sortable: true,
-      filter: true,
-      width: 250,
     },
-    { 
-      field: 'price', 
-      headerName: 'Price',
-      sortable: true,
-      filter: true,
-      width: 120,
-      valueFormatter: (params: ValueFormatterParams) => {
-        return params.value ? `$${params.value.toFixed(2)}` : '';
-      },
-    },
-    { 
-      field: 'cost', 
-      headerName: 'Cost',
-      sortable: true,
-      filter: true,
-      width: 120,
-      valueFormatter: (params: ValueFormatterParams) => {
-        return params.value ? `$${params.value.toFixed(2)}` : '';
-      },
-    },
-    { 
-      field: 'category', 
+    {
       headerName: 'Category',
-      sortable: true,
+      field: 'category',
+      minWidth: 120,
+      flex: 1,
+      resizable: true,
       filter: true,
-      width: 150,
+      sortable: true,
     },
-    { 
-      field: 'status', 
-      headerName: 'Status',
+    {
+      headerName: 'Price',
+      field: 'price',
+      minWidth: 100,
+      flex: 1,
+      resizable: true,
+      filter: 'agNumberColumnFilter',
       sortable: true,
-      filter: true,
-      width: 120,
-      cellRenderer: (params: { value: string }) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          params.value === 'active' 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
-        </span>
-      ),
+      type: 'numericColumn',
+      valueFormatter: (params) => {
+        return `$${params.value.toFixed(2)}`;
+      },
+    },
+    {
+      headerName: 'Cost',
+      field: 'cost',
+      minWidth: 100,
+      flex: 1,
+      resizable: true,
+      filter: 'agNumberColumnFilter',
+      sortable: true,
+      type: 'numericColumn',
+      valueFormatter: (params) => {
+        return `$${params.value.toFixed(2)}`;
+      },
+    },
+    {
+      headerName: 'Margin',
+      minWidth: 100,
+      flex: 1,
+      resizable: true,
+      filter: 'agNumberColumnFilter',
+      sortable: true,
+      type: 'numericColumn',
+      valueGetter: (params) => {
+        const sku = params.data as SKU;
+        return ((sku.price - sku.cost) / sku.price * 100).toFixed(2);
+      },
+      valueFormatter: (params) => {
+        return `${params.value}%`;
+      },
+      cellStyle: (params) => {
+        const value = parseFloat(params.value);
+        return value < 20 ? { color: 'red' } : value > 40 ? { color: 'green' } : { color: 'orange' };
+      },
     },
     {
       headerName: 'Actions',
-      width: 150,
-      cellRenderer: (params: { data: SKU }) => {
-        if (!params.data || !isAuthenticated) return null;
-        return (
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleEdit(params.data)}
-              className="px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => handleDelete(params.data.id)}
-              className="px-3 py-1 text-sm font-medium text-red-600 hover:text-red-800 focus:outline-none"
-            >
-              Delete
-            </button>
-          </div>
-        );
-      },
+      minWidth: 150,
+      flex: 1,
       sortable: false,
       filter: false,
+      cellRenderer: (params: any) => (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleEdit(params.data)}
+            className="text-blue-600 hover:text-blue-800"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(params.data.id)}
+            className="text-red-600 hover:text-red-800"
+          >
+            Delete
+          </button>
+        </div>
+      ),
     },
   ];
 
-  const loadSKUs = useCallback(async () => {
-    try {
-      dispatch(setLoading(true));
-      const data = await skuService.getAllSKUs();
-      dispatch(setSKUs(data));
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to load SKUs'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  }, [dispatch]);
+  const defaultColDef = {
+    sortable: true,
+    filter: true,
+    resizable: true,
+  };
 
-  useEffect(() => {
-    void loadSKUs();
-  }, [loadSKUs]);
-
-  const handleCreateSKU = async (skuData: CreateSKUDto) => {
+  const handleEdit = (sku: SKU) => {
     if (!isAuthenticated) {
       setShowAuthForm(true);
       return;
     }
+    setEditingSKU(sku);
+    setShowSKUForm(true);
+  };
 
-    try {
-      dispatch(setLoading(true));
-      const newSKU = await skuService.createSKU(skuData);
-      dispatch(addSKU(newSKU));
-      setShowForm(false);
-      setSelectedSKU(undefined);
-      await loadSKUs();
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to create SKU'));
-    } finally {
-      dispatch(setLoading(false));
+  const handleDelete = (skuId: string) => {
+    if (!isAuthenticated) {
+      setShowAuthForm(true);
+      return;
+    }
+    if (window.confirm('Are you sure you want to delete this SKU?')) {
+      dispatch(deleteSKU(skuId));
     }
   };
 
-  const handleUpdateSKU = async (skuData: CreateSKUDto) => {
-    if (!selectedSKU || !isAuthenticated) return;
-
-    try {
-      dispatch(setLoading(true));
-      const updatedSKU = await skuService.updateSKU(selectedSKU.id, skuData);
-      if (updatedSKU) {
-        dispatch(updateSKU(updatedSKU));
-      } else {
-        throw new Error('Failed to update SKU');
-      }
-      setShowForm(false);
-      setSelectedSKU(undefined);
-      await loadSKUs();
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to update SKU'));
-    } finally {
-      dispatch(setLoading(false));
+  const handleAddSKU = () => {
+    if (!isAuthenticated) {
+      setShowAuthForm(true);
+      return;
     }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!isAuthenticated || !window.confirm('Are you sure you want to delete this SKU?')) return;
-
-    try {
-      dispatch(setLoading(true));
-      await skuService.deleteSKU(id);
-      dispatch(deleteSKU(id));
-      await loadSKUs();
-    } catch (err) {
-      dispatch(setError(err instanceof Error ? err.message : 'Failed to delete SKU'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
-
-  const handleEdit = (sku: SKU) => {
-    setSelectedSKU(sku);
-    setShowForm(true);
+    setEditingSKU(null);
+    setShowSKUForm(true);
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">SKU Management</h1>
-        {isAuthenticated && (
+    <div className="flex flex-col h-full p-4 space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2 sm:mb-0">SKUs</h1>
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
           <button
-            onClick={() => {
-              setSelectedSKU(undefined);
-              setShowForm(true);
-            }}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+            onClick={handleAddSKU}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors w-full sm:w-auto"
           >
-            Add New SKU
+            Add SKU
           </button>
-        )}
+          <button
+            onClick={() => {/* Add export functionality */}}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors w-full sm:w-auto"
+          >
+            Export to Excel
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <div 
-          className="flex-1 w-full ag-theme-alpine" 
-          style={{ height: '600px', width: '100%' }}
-        >
+      <div className="flex-grow w-full h-[calc(100vh-12rem)] min-h-[400px] bg-white rounded-lg shadow overflow-hidden">
+        <div className="ag-theme-alpine w-full h-full">
           <AgGridReact
             rowData={skus}
             columnDefs={columnDefs}
-            defaultColDef={{
-              resizable: true,
-              sortable: true,
-              filter: true,
-              minWidth: 100,
-            }}
+            defaultColDef={defaultColDef}
             animateRows={true}
+            rowSelection="multiple"
+            suppressRowClickSelection={true}
             pagination={true}
             paginationPageSize={10}
+            domLayout="autoHeight"
           />
         </div>
-      )}
+      </div>
 
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg max-w-2xl w-full mx-4">
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {selectedSKU ? 'Edit SKU' : 'Add New SKU'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setSelectedSKU(undefined);
-                }}
-                className="text-gray-400 hover:text-gray-500 focus:outline-none"
-              >
-                <span className="sr-only">Close</span>
-                &times;
-              </button>
-            </div>
+      {showSKUForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full mx-4">
             <SKUForm
-              onSubmit={selectedSKU ? handleUpdateSKU : handleCreateSKU}
-              onCancel={() => {
-                setShowForm(false);
-                setSelectedSKU(undefined);
-              }}
-              initialData={selectedSKU}
+              sku={editingSKU}
+              onClose={() => setShowSKUForm(false)}
             />
           </div>
         </div>
       )}
 
       {showAuthForm && !isAuthenticated && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full mx-4">
             <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
           </div>

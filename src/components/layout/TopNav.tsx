@@ -1,52 +1,72 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
 import { logout } from '../../store/authSlice';
 import AuthForm from '../auth/AuthForm';
 import gsynergyLogo from '../../assets/gsynergy_logo.jpg';
 
 const TopNav: React.FC = () => {
-  const [showAuthForm, setShowAuthForm] = useState(false);
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
+    setShowMobileMenu(false);
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200">
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-full">
-          <div className="flex-shrink-0 flex items-center space-x-4">
-            <img
-              className="h-[120px] w-[120px] object-contain"
-              src={gsynergyLogo}
-              alt="GSynergy Logo"
-            />
-            <div className="h-12 w-px bg-gray-200" /> {/* Vertical divider */}
-            <span className="text-2xl font-semibold text-gray-900">
-              Data Viewer
-            </span>
+    <nav className="bg-white shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <img
+                className="h-8 w-auto"
+                src={gsynergyLogo}
+                alt="GSynergy Logo"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center">
-            {isAuthenticated && (
-              <span className="mr-4 text-gray-700">
-                Welcome, <span className="font-medium">{user?.name || user?.email}</span>
-              </span>
-            )}
+          {/* Mobile menu button */}
+          <div className="flex items-center sm:hidden">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            >
+              <span className="sr-only">Open main menu</span>
+              {/* Icon when menu is closed */}
+              {!showMobileMenu ? (
+                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              ) : (
+                /* Icon when menu is open */
+                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Desktop menu */}
+          <div className="hidden sm:flex sm:items-center sm:ml-6">
             {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-              >
-                Sign Out
-              </button>
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-700">{user?.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => setShowAuthForm(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Sign In
               </button>
@@ -55,8 +75,40 @@ const TopNav: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile menu */}
+      <div className={`${showMobileMenu ? 'block' : 'hidden'} sm:hidden`}>
+        <div className="pt-2 pb-3 space-y-1">
+          {isAuthenticated ? (
+            <div className="px-4 py-2 space-y-2">
+              <div className="text-gray-700">{user?.name}</div>
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-3 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setShowAuthForm(true);
+                setShowMobileMenu(false);
+              }}
+              className="w-full text-left px-4 py-2 text-base font-medium text-indigo-600 hover:text-indigo-800 hover:bg-gray-50"
+            >
+              Sign In
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Auth form modal */}
       {showAuthForm && !isAuthenticated && (
-        <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full mx-4">
+            <AuthForm mode="login" onClose={() => setShowAuthForm(false)} />
+          </div>
+        </div>
       )}
     </nav>
   );
