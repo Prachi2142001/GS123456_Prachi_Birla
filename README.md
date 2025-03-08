@@ -1,66 +1,156 @@
 # GSynergy Data Viewer PWA
 
-## Instructions to Run and Test the Code
+A modern Progressive Web Application for managing store and SKU data with powerful visualization capabilities.
 
-1. **Installation**
+## Features
+
+1. **Store Management**
+   - CRUD operations for store data
+   - Responsive data grid with sorting and filtering
+   - Real-time updates with Redux state management
+
+2. **SKU Management**
+   - Complete CRUD operations for SKUs
+   - Price and cost tracking
+   - Category-based organization
+   - Store association
+
+3. **Planning Grid**
+   - AG-Grid integration for advanced data manipulation
+   - Real-time calculations and updates
+   - Custom cell renderers and editors
+
+4. **Analytics Dashboard**
+   - Dual-axis visualizations using AG-Charts
+   - Store performance metrics
+   - SKU category analysis
+   - Interactive tooltips and legends
+
+## Tech Stack
+
+- React with TypeScript
+- Redux for state management
+- AG-Grid Enterprise for data grids
+- AG-Charts for data visualization
+- TailwindCSS for styling
+
+## Getting Started
+
+1. **Prerequisites**
    ```bash
+   node >= 14.0.0
+   npm >= 6.14.0
+   ```
+
+2. **Installation**
+   ```bash
+   # Clone the repository
+   git clone https://github.com/yourusername/GS123456_Prachi_Birla.git
+
+   # Install dependencies
    npm install
    ```
 
-2. **Running the Application**
+3. **Running the Application**
    ```bash
+   # Start development server
    npm start
-   ```
-   This will start the development server at http://localhost:3000
 
-3. **Running Tests**
+   # Application will be available at http://localhost:3000
+   ```
+
+4. **Running Tests**
    ```bash
+   # Run all tests
    npm test
+
+   # Run tests with coverage
+   npm test -- --coverage
    ```
 
-## Well-Implemented Elements
+## Project Structure
 
-1. **Redux State Management with TypeScript**
-   - Implemented strongly-typed Redux store with separate slices for Stores, SKUs, and Planning data
-   - Used TypeScript interfaces for all data models ensuring type safety
-   - Implemented efficient state updates with proper immutability patterns
-   - This demonstrates my proficiency in both Redux and TypeScript, showing how I maintain type safety while managing complex application state
+```
+/src
+  /components     # Reusable UI components
+    /layout       # Layout components (TopNav, SideNav)
+    /skus         # SKU-related components
+    /stores       # Store-related components
+  /pages          # Main page components
+  /store          # Redux store configuration
+  /types          # TypeScript interfaces
+  /services       # API and data services
+  /utils          # Helper functions
+```
 
-2. **Modular Component Architecture**
-   - Created reusable layout components (TopNav, SideNav)
-   - Implemented lazy loading for page components to improve initial load time
-   - Maintained clear separation of concerns between components
-   - This showcases my ability to structure scalable React applications with performance in mind
+## Key Implementation Highlights
 
-3. **Clean and Maintainable Code Structure**
-   - Organized project structure with clear separation of components, pages, and store
-   - Consistent file naming and code formatting
-   - Well-documented code with clear type definitions
-   - This demonstrates my focus on code quality and maintainability
+1. **Type-Safe Redux Architecture**
+   - Implemented strongly-typed Redux store with TypeScript
+   - Created separate slices for stores, SKUs, and planning data
+   - Used TypeScript interfaces for all data models
+   - This demonstrates proficiency in:
+     * TypeScript's advanced features
+     * Redux best practices
+     * State management patterns
 
-## Future Improvements (With 4 More Hours)
+2. **Advanced Data Visualization**
+   - Implemented dual-axis charts using AG-Charts
+   - Created interactive tooltips with custom renderers
+   - Added dynamic data updates
+   - This showcases:
+     * Complex data visualization skills
+     * AG-Charts integration expertise
+     * Attention to user experience
 
-1. **Comprehensive Testing Suite**
-   - Add unit tests for Redux reducers and actions
-   - Implement component testing with React Testing Library
-   - Add integration tests for critical user flows
-   Why? Testing is crucial for production applications, ensuring reliability and making future changes safer.
+3. **Modular Component Design**
+   - Created reusable form components for SKUs and stores
+   - Implemented shared layout components
+   - Used custom hooks for common functionality
+   - This highlights:
+     * React component architecture skills
+     * Code reusability practices
+     * Clean code principles
 
-2. **Enhanced User Experience**
-   - Add loading states and error handling
-   - Implement drag-and-drop for store reordering
-   - Add form validation and error messages
-   Why? These features would make the application more user-friendly and robust in handling edge cases.
+4. **Error Handling and Type Safety**
+   - Comprehensive error handling in async operations
+   - Type-safe form handling with TypeScript
+   - Proper Promise handling in services
+   - This demonstrates:
+     * Production-ready code practices
+     * Attention to edge cases
+     * TypeScript proficiency
 
-3. **Performance Optimizations**
-   - Implement memoization for expensive calculations in the Planning grid
-   - Add service worker for offline capabilities
-   - Optimize bundle size with code splitting
-   Why? These improvements would make the application faster and more reliable, especially for larger datasets.
+## Future Improvements
 
-## Challenge Feedback
+1. **Testing**
+   - Add unit tests for Redux slices
+   - Implement component testing
+   - Add integration tests for critical flows
 
-- The requirements are well-structured and clear
-- The scope is appropriate for assessing both technical skills and architectural decisions
-- The challenge effectively tests real-world scenarios a developer might encounter
-- Suggestion: Could include some sample data to standardize the testing/demo process
+2. **Authentication**
+   - Implement user authentication
+   - Add role-based access control
+   - Secure API endpoints
+
+3. **Performance**
+   - Add code splitting
+   - Implement service workers
+   - Optimize bundle size
+
+4. **Deployment**
+   - Set up CI/CD pipeline
+   - Configure error logging
+   - Deploy to cloud platform
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
